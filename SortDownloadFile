@@ -1,0 +1,34 @@
+import os
+import  glob
+import shutil
+import time
+
+def SortFilesToNewFolder(work_path,download_type,digits_len_series=3):
+    path=work_path
+    today=time.strftime("%Y%m%d",time.localtime())
+    today_path = path + today
+    download_type=download_type
+    if not os.path.isdir(today_path):
+        os.mkdir(today_path)
+
+    #拿到剛載下來的圖檔路徑
+    directory_list = list()
+    filename_list=list()
+    for root, dirs, files in os.walk(path, topdown=False):
+        for name in dirs:
+            filepath = os.path.join(root, name)
+            filenames = os.listdir(os.path.join(root, name))
+            imagelist=glob.glob(filepath+'/*.'+f'{download_type}')
+            if imagelist:
+                filename_list.append(filenames)
+                directory_list.append(filepath)
+    #重建成方便處理閱讀的結構，指定path/日期/seris數量編號/影像數量編號.dcm
+    for i in range(len(directory_list)):
+        new_path=str(today_path+'/'+str(i+1))
+        if os.path.isdir(new_path):
+            shutil.rmtree(today_path)
+        shutil.copytree(directory_list[i],new_path)
+        images = glob.glob(new_path+'/*')
+        for j in range(len(images)):
+            #三位數補零-->:03d
+            os.rename(images[j],f'{new_path}/{i+1}-{j+1:0{digits_len_series}d}.{download_type}')
